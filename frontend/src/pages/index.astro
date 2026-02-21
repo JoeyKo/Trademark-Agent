@@ -46,8 +46,14 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 				"error-container",
 			) as HTMLDivElement;
 
-			// API endpoint
-			const API_URL = "http://127.0.0.1:8000/api/v1/generate-names";
+			// 适配本地开发与 Vercel 生产环境
+			// 生产环境下同源直接访问相对路径 /api，本地开发跨域访问 8000 端口
+			const isLocal =
+				window.location.hostname === "localhost" ||
+				window.location.hostname === "127.0.0.1";
+			const API_URL = isLocal
+				? "http://127.0.0.1:8000/api/v1/generate-names"
+				: "/api/v1/generate-names";
 
 			form.addEventListener("submit", async (e: Event) => {
 				e.preventDefault();
