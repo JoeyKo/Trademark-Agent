@@ -76,8 +76,8 @@ api_graph = api_workflow.compile()
 # ==========================================
 
 class GenerateNameRequest(BaseModel):
-    industry: str = Field(..., description="行业，例如：新能源汽车", examples=["3d行业"])
-    keywords: str = Field(..., description="核心关键词，多个词用逗号或空格隔开", examples=["数字、编辑器、数字世界"])
+    industry: str = Field(..., description="行业，例如：新能源汽车", examples=["新能源汽车"])
+    keywords: str = Field(..., description="核心关键词，多个词用逗号或空格隔开", examples=["智能、安全、未来"])
 
 class NameCandidate(BaseModel):
     name: str = Field(..., description="生成的商标名称")
