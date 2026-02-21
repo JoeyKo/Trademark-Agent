@@ -1,0 +1,188 @@
+---
+import Layout from "../layouts/Layout.astro";
+import GeneratorForm from "../components/GeneratorForm.astro";
+import ResultsDisplay from "../components/ResultsDisplay.astro";
+---
+
+<Layout title="商标大师起名">
+	<div class="container">
+		<div class="glass-card">
+			<h1>商标大师</h1>
+			<p class="subtitle">AI 智能驱动，一键探索优质品牌方案</p>
+
+			<GeneratorForm />
+
+			<ResultsDisplay />
+		</div>
+	</div>
+
+	<script>
+		// TypeScript Interface for API Data
+		interface Candidate {
+			name: string;
+			status: string;
+			reason: string;
+			query_url: string;
+		}
+
+		document.addEventListener("DOMContentLoaded", () => {
+			const form = document.getElementById("generator-form") as HTMLFormElement;
+			const industryInput = document.getElementById(
+				"industry",
+			) as HTMLInputElement;
+			const keywordsInput = document.getElementById(
+				"keywords",
+			) as HTMLInputElement;
+			const submitBtn = document.getElementById(
+				"submit-btn",
+			) as HTMLButtonElement;
+			const resultsContainer = document.getElementById(
+				"results-container",
+			) as HTMLDivElement;
+			const resultsList = document.getElementById(
+				"results-list",
+			) as HTMLDivElement;
+			const errorContainer = document.getElementById(
+				"error-container",
+			) as HTMLDivElement;
+
+			// API endpoint
+			const API_URL = "http://127.0.0.1:8000/api/v1/generate-names";
+
+			form.addEventListener("submit", async (e: Event) => {
+				e.preventDefault();
+
+				const industry = industryInput.value;
+				const keywords = keywordsInput.value;
+
+				// Reset state
+				errorContainer.style.display = "none";
+				resultsList.innerHTML = "";
+				resultsContainer.classList.remove("visible");
+
+				submitBtn.disabled = true;
+				submitBtn.classList.add("loading");
+
+				try {
+					const response = await fetch(API_URL, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({ industry, keywords }),
+					});
+
+					if (!response.ok) {
+						throw new Error(`请求失败 (状态码: ${response.status})`);
+					}
+
+					const data = await response.json();
+
+					if (data.candidates && data.candidates.length > 0) {
+						renderResults(data.candidates);
+						resultsContainer.classList.add("visible");
+					} else {
+						showError(
+							"未能生成有效的商标名称，大模型可能拒答了。请换个更常见的关键词重试。",
+						);
+					}
+				} catch (err: unknown) {
+					const errMsg = err instanceof Error ? err.message : String(err);
+					showError(
+						errMsg === "Failed to fetch"
+							? "网络请求失败。请确保后台服务 (main.py) 正在 8000 端口运行。"
+							: errMsg,
+					);
+				} finally {
+					submitBtn.disabled = false;
+					submitBtn.classList.remove("loading");
+				}
+			});
+
+			function renderResults(candidates: Candidate[]) {
+				candidates.forEach((cand, index) => {
+					const card = document.createElement("div");
+					card.className = "result-card";
+					card.style.animationDelay = `${index * 0.1}s`;
+
+					const isPass = cand.status === "pass";
+					const statusBadge = isPass
+						? `<span class="status-badge status-pass">可用方案</span>`
+						: `<span class="status-badge status-fail">风险标记</span>`;
+
+					card.innerHTML = `
+            <div class="result-header">
+              <div class="result-name">
+                ${cand.name}
+                ${statusBadge}
+              </div>
+            </div>
+            <div class="result-reason">${cand.reason}</div>
+            <div class="action-container">
+              <a href="${cand.query_url}" target="_blank" rel="noopener noreferrer" class="action-link" title="前往阿里云查找是否有重名商标">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                阿里云查重
+              </a>
+            </div>
+          `;
+					resultsList.appendChild(card);
+				});
+			}
+
+			function showError(msg: string) {
+				errorContainer.textContent = msg;
+				errorContainer.style.display = "block";
+			}
+		});
+	</script>
+
+	<style>
+		.container {
+			width: 100%;
+			max-width: 600px;
+			padding: 2rem;
+		}
+
+		.glass-card {
+			background: var(--surface-color);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			border: 1px solid var(--border-color);
+			border-radius: 20px;
+			padding: 2.5rem;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+			animation: floatIn 0.8s ease-out forwards;
+		}
+
+		@keyframes floatIn {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		h1 {
+			font-size: 2.25rem;
+			font-weight: 700;
+			margin-bottom: 0.5rem;
+			background: linear-gradient(135deg, #a855f7, #6366f1);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			text-align: center;
+		}
+
+		p.subtitle {
+			text-align: center;
+			color: var(--text-muted);
+			margin-bottom: 2.5rem;
+			font-size: 1rem;
+		}
+	</style>
+</Layout>

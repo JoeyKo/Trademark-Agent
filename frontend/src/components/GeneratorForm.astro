@@ -1,0 +1,108 @@
+---
+// src/components/GeneratorForm.astro
+---
+
+<form id="generator-form">
+  <div class="form-group">
+    <label for="industry">所属行业</label>
+    <input
+      type="text"
+      id="industry"
+      name="industry"
+      placeholder="例如：新能源汽车"
+      required
+      value="新能源汽车"
+    />
+  </div>
+  <div class="form-group">
+    <label for="keywords">核心关键词 (顿号或空格隔开)</label>
+    <input
+      type="text"
+      id="keywords"
+      name="keywords"
+      placeholder="例如：智能、安全、未来"
+      required
+      value="智能、安全、未来"
+    />
+  </div>
+  <button type="submit" id="submit-btn" aria-label="生成方案">
+    <span class="btn-text">立即生成</span>
+    <div class="spinner"></div>
+  </button>
+</form>
+
+<style>
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 500;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    background: rgba(15, 23, 42, 0.8);
+  }
+
+  button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  button.loading .spinner {
+    display: block;
+  }
+
+  button.loading .btn-text {
+    display: none;
+  }
+</style>

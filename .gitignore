@@ -1,0 +1,58 @@
+# =========================
+# Python & FastAPI
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.env
+.venv
+ENV/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+
+# ModelScope / HuggingFace local cache (optional but good idea if testing models)
+.cache/
+
+# =========================
+# Node & Astro (Frontend)
+# =========================
+node_modules/
+dist/
+.dist/
+.astro/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# =========================
+# IDEs & Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Custom Project Specific
+# =========================
+*.log
+# Frontend specifically
+frontend/dist/
+frontend/node_modules/
+frontend/.astro/
