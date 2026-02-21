@@ -56,9 +56,14 @@ npm run dev
 
 本项目支持免服务器（Serverless）云端部署，只需：
 1. Fork 或上传此仓库到 GitHub。
-2. 在 [Vercel](https://vercel.com/) 控制台中导入您的仓库。
-3. Vercel 会自动识别 `vercel.json` 双环境部署策略：
-   - 静态前端托管 Astro
-   - 动态 API 路由分配到 `api/index.py` Serverless Python
-4. 进入 Vercel 的 **Settings -> Environment Variables**，设置 `OPENAI_API_KEY` 的值为你的 ModelScope Token。
-5. **Deploy!** 🚀
+2. 在 [Vercel](https://vercel.com/) 控制台中新建项目，导入您的仓库。
+3. **关键配置**：在部署前，展开 "Build and Output Settings" 修改参数：
+   - **Framework Preset**: 选择 `Astro`
+   - **Build Command**: `cd frontend && npm install && npm run build`
+   - **Output Directory**: `frontend/dist`
+4. 展开 **Environment Variables**，添加环境变量：
+   - 名称填写：`OPENAI_API_KEY`
+   - 填写您的真实 Token 
+5. 点击 **Deploy**！🚀
+
+部署完成后，Vercel 会自动将前端打包为静态页面并作为主路由响应，同时将 `/api/v1/*` 的所有请求转发至 Python Serverless 引擎 (`api/index.py`)。双端同享一个域名，解决所有跨域问题！

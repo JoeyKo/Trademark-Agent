@@ -5,7 +5,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
-from agent import AgentState, llm, should_continue, checker_node
+try:
+    # Vercel Serverless 时，项目根目录为执行目录
+    from api.agent import AgentState, llm, should_continue, checker_node
+except ImportError:
+    # 兼容本地 cd api 后执行 uvicorn 的情况
+    from agent import AgentState, llm, should_continue, checker_node
 
 from fastapi.middleware.cors import CORSMiddleware
 
