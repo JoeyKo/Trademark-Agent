@@ -5,13 +5,15 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 ---
 
 <Layout title="商标大师起名">
-	<div class="container">
-		<div class="glass-card">
-			<h1>商标大师</h1>
-			<p class="subtitle">AI 智能驱动，一键探索优质品牌方案</p>
-
-			<GeneratorForm />
-
+	<div class="container main-layout">
+		<div class="left-panel">
+			<div class="glass-card sticky-card">
+				<h1>商标大师</h1>
+				<p class="subtitle">AI 智能驱动，一键探索优质品牌方案</p>
+				<GeneratorForm />
+			</div>
+		</div>
+		<div class="right-panel">
 			<ResultsDisplay />
 		</div>
 	</div>
@@ -46,14 +48,39 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 				"error-container",
 			) as HTMLDivElement;
 
+			const emptyState = document.getElementById(
+				"empty-state",
+			) as HTMLDivElement;
+			const thinkingContainer = document.getElementById(
+				"thinking-container",
+			) as HTMLDivElement;
+			const thinkingContent = document.getElementById(
+				"thinking-content",
+			) as HTMLDivElement;
+			const thinkingHeader = document.getElementById(
+				"thinking-header",
+			) as HTMLDivElement;
+			const thinkingSpinner = document.getElementById(
+				"thinking-spinner",
+			) as HTMLDivElement;
+			const thinkingStatusText = document.getElementById(
+				"thinking-status-text",
+			) as HTMLSpanElement;
+			const thinkingToggleBtn = document.getElementById(
+				"thinking-toggle-btn",
+			) as HTMLButtonElement;
+
+			thinkingHeader.addEventListener("click", () => {
+				thinkingHeader.classList.toggle("collapsed");
+			});
+
 			// 适配本地开发与 Vercel 生产环境
-			// 生产环境下同源直接访问相对路径 /api，本地开发跨域访问 8000 端口
 			const isLocal =
 				window.location.hostname === "localhost" ||
 				window.location.hostname === "127.0.0.1";
 			const API_URL = isLocal
-				? "http://127.0.0.1:8000/api/v1/generate-names"
-				: "/api/v1/generate-names";
+				? "http://127.0.0.1:8000/api/v1/generate-names-stream"
+				: "/api/v1/generate-names-stream";
 
 			form.addEventListener("submit", async (e: Event) => {
 				e.preventDefault();
@@ -66,8 +93,27 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 				resultsList.innerHTML = "";
 				resultsContainer.classList.remove("visible");
 
+				// Hide empty state
+				emptyState.classList.remove("visible");
+				emptyState.style.display = "none";
+
+				thinkingContent.textContent = "";
+				thinkingHeader.classList.remove("collapsed", "completed");
+				thinkingSpinner.classList.remove("hidden");
+				thinkingToggleBtn.classList.add("hidden");
+				thinkingStatusText.textContent = "AI 正在思考中...";
+				thinkingContainer.classList.add("visible");
+				thinkingContainer.style.display = "block";
+
 				submitBtn.disabled = true;
 				submitBtn.classList.add("loading");
+
+				const markThinkingCompleted = () => {
+					thinkingHeader.classList.add("completed");
+					thinkingSpinner.classList.add("hidden");
+					thinkingToggleBtn.classList.remove("hidden");
+					thinkingStatusText.textContent = "思考完成";
+				};
 
 				try {
 					const response = await fetch(API_URL, {
@@ -82,21 +128,61 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 						throw new Error(`请求失败 (状态码: ${response.status})`);
 					}
 
-					const data = await response.json();
+					if (!response.body) throw new Error("ReadableStream not supported");
 
-					if (data.candidates && data.candidates.length > 0) {
-						renderResults(data.candidates);
-						resultsContainer.classList.add("visible");
-					} else {
-						showError(
-							"未能生成有效的商标名称，大模型可能拒答了。请换个更常见的关键词重试。",
-						);
+					const reader = response.body.getReader();
+					const decoder = new TextDecoder();
+					let buffer = "";
+
+					while (true) {
+						const { done, value } = await reader.read();
+						if (done) break;
+
+						buffer += decoder.decode(value, { stream: true });
+						const lines = buffer.split("\n\n");
+						buffer = lines.pop() || "";
+
+						for (const line of lines) {
+							if (line.startsWith("data: ")) {
+								const dataStr = line.replace("data: ", "");
+								try {
+									const data = JSON.parse(dataStr);
+									if (data.type === "reasoning") {
+										thinkingContent.textContent += data.content;
+										// Auto scroll to bottom if not collapsed
+										if (!thinkingHeader.classList.contains("collapsed")) {
+											thinkingContent.scrollTop = thinkingContent.scrollHeight;
+										}
+									} else if (data.type === "result") {
+										markThinkingCompleted();
+
+										if (data.error_msg) {
+											showError(data.error_msg);
+										}
+										if (data.candidates && data.candidates.length > 0) {
+											renderResults(data.candidates);
+											resultsContainer.classList.add("visible");
+										} else {
+											showError(
+												"未能生成有效的商标名称，大模型可能拒答了。请换个更常见的关键词重试。",
+											);
+										}
+									} else if (data.type === "error") {
+										markThinkingCompleted();
+										showError(data.message);
+									}
+								} catch (e) {
+									console.error("Error parsing SSE data line:", dataStr, e);
+								}
+							}
+						}
 					}
 				} catch (err: unknown) {
 					const errMsg = err instanceof Error ? err.message : String(err);
+					markThinkingCompleted();
 					showError(
 						errMsg === "Failed to fetch"
-							? "网络请求失败。请确保后台服务 (main.py) 正在 8000 端口运行。"
+							? "网络请求失败。请确保后台服务正在运行。"
 							: errMsg,
 					);
 				} finally {
@@ -109,7 +195,8 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 				candidates.forEach((cand, index) => {
 					const card = document.createElement("div");
 					card.className = "result-card";
-					card.style.animationDelay = `${index * 0.1}s`;
+					// Stagger the slideUpFade animation based on index
+					card.style.animationDelay = `${index * 0.15}s`;
 
 					const isPass = cand.status === "pass";
 					const statusBadge = isPass
@@ -148,47 +235,82 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 	<style>
 		.container {
 			width: 100%;
-			max-width: 600px;
-			padding: 2rem;
+			max-width: 1100px;
+			margin: 0 auto;
+			padding: 0 1.5rem 4rem;
+		}
+
+		.main-layout {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 2rem;
+			align-items: start;
+		}
+
+		@media (min-width: 860px) {
+			.main-layout {
+				grid-template-columns: 380px 1fr;
+				gap: 3rem;
+			}
+		}
+
+		.sticky-card {
+			position: sticky;
+			top: 2rem;
+		}
+
+		.left-panel {
+			width: 100%;
+			z-index: 10;
+		}
+
+		.right-panel {
+			width: 100%;
+			min-height: 400px;
 		}
 
 		.glass-card {
-			background: var(--surface-color);
-			backdrop-filter: blur(16px);
-			-webkit-backdrop-filter: blur(16px);
-			border: 1px solid var(--border-color);
-			border-radius: 20px;
-			padding: 2.5rem;
-			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-			animation: floatIn 0.8s ease-out forwards;
+			background: rgba(30, 41, 59, 0.6); /* Increased brightness for contrast */
+			backdrop-filter: blur(24px) saturate(180%);
+			-webkit-backdrop-filter: blur(24px) saturate(180%);
+			border: 1px solid rgba(255, 255, 255, 0.1); /* Brighter border */
+			border-radius: 24px;
+			padding: 2.5rem 2rem;
+			box-shadow:
+				0 4px 6px -1px rgba(0, 0, 0, 0.1),
+				0 24px 38px -10px rgba(0, 0, 0, 0.6),
+				inset 0 1px 1px rgba(255, 255, 255, 0.1);
+			animation: floatIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 		}
 
 		@keyframes floatIn {
-			from {
+			0% {
 				opacity: 0;
-				transform: translateY(20px);
+				transform: translateY(20px) scale(0.98);
 			}
-			to {
+			100% {
 				opacity: 1;
-				transform: translateY(0);
+				transform: translateY(0) scale(1);
 			}
 		}
 
 		h1 {
-			font-size: 2.25rem;
+			font-size: 2.5rem;
 			font-weight: 700;
 			margin-bottom: 0.5rem;
-			background: linear-gradient(135deg, #a855f7, #6366f1);
+			background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
-			text-align: center;
+			text-align: left;
+			line-height: 1.2;
 		}
 
 		p.subtitle {
-			text-align: center;
+			text-align: left;
 			color: var(--text-muted);
 			margin-bottom: 2.5rem;
-			font-size: 1rem;
+			font-size: 0.95rem;
+			line-height: 1.5;
 		}
 	</style>
 </Layout>

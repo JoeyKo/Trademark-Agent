@@ -2,15 +2,18 @@ import json
 import urllib.parse
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 try:
     # Vercel Serverless 时，项目根目录为执行目录
     from api.agent import AgentState, llm, should_continue, checker_node
+    from api.agent_stream import stream_generator
 except ImportError:
     # 兼容本地 cd api 后执行 uvicorn 的情况
     from agent import AgentState, llm, should_continue, checker_node
+    from agent_stream import stream_generator
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -121,7 +124,7 @@ def build_aliyun_url(keyword: str) -> str:
     encoded_q = urllib.parse.quote(json.dumps(query_dict, separators=(',', ':')))
     return f"https://tm.aliyun.com/channel/search#/search?q={encoded_q}"
 
-@app.post("/api/v1/generate-names", response_model=GenerateNameResponse, summary="生成商标名称")
+@app.post("/api/v1/generate-names", response_model=GenerateNameResponse, summary="生成商标名称 (旧版弃用)", deprecated=True)
 async def generate_names_api(request: GenerateNameRequest):
     try:
         initial_input = {
@@ -155,7 +158,15 @@ async def generate_names_api(request: GenerateNameRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"内部生成错误: {str(e)}")
 
+@app.post("/api/v1/generate-names-stream", summary="流式生成商标名称并返回思考过程")
+async def generate_names_stream_api(request: GenerateNameRequest):
+    return StreamingResponse(
+        stream_generator(request.industry, request.keywords), 
+        media_type="text/event-stream"
+    )
+
 if __name__ == "__main__":
     import uvicorn
     # 为了方便测试直接运行此文件
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api.index:app", host="0.0.0.0", port=8000, reload=True)
+
