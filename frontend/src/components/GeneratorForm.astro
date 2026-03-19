@@ -1,168 +1,78 @@
----
-// src/components/GeneratorForm.astro
----
-
+<!-- Generator Form -->
 <form id="generator-form">
   <div class="form-group">
-    <label for="industry">所属行业</label>
-    <input
-      type="text"
-      id="industry"
-      name="industry"
-      placeholder="例如：新能源汽车"
-      required
-      value="新能源汽车"
-    />
+    <label for="industry" data-i18n="industryLabel">所属行业</label>
+    <input type="text" id="industry" required placeholder="例如：新能源汽车" data-i18n-placeholder="industryPlaceholder" />
   </div>
   <div class="form-group">
-    <label for="keywords">核心关键词 (顿号或空格隔开)</label>
-    <input
-      type="text"
-      id="keywords"
-      name="keywords"
-      placeholder="例如：智能、安全、未来"
-      required
-      value="智能、安全、未来"
-    />
+    <label for="keywords" data-i18n="keywordsLabel">核心关键词 (顿号或空格隔开)</label>
+    <input type="text" id="keywords" required placeholder="例如：智能、安全、未来" data-i18n-placeholder="keywordsPlaceholder" />
   </div>
-  <button type="submit" id="submit-btn" aria-label="生成方案">
-    <span class="btn-text">立即生成</span>
-    <div class="spinner"></div>
+  <button type="submit" id="submit-btn">
+    <span class="btn-text" data-i18n="submitBtn">立即生成</span>
+    <div class="spinner" id="submit-spinner"></div>
   </button>
 </form>
 
 <style>
-  .form-group {
-    margin-bottom: 1.5rem;
+  form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
-
+  .form-group {
+    margin-bottom: 12px;
+  }
   label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--text-muted);
+    margin-bottom: 4px;
+    font-size: 12px;
     font-weight: 500;
-    letter-spacing: 0.02em;
+    color: var(--text-secondary);
   }
-
   input {
     width: 100%;
-    padding: 1rem 1.25rem;
-    background: rgba(15, 23, 42, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    padding: 8px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     color: var(--text-main);
-    font-size: 0.95rem;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    font-size: 13px;
+    font-family: var(--font-sans);
     outline: none;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    transition: all var(--transition);
   }
-
-  input::placeholder {
-    color: rgba(148, 163, 184, 0.4);
-    font-weight: 400;
-  }
-
-  input:hover {
-    background: rgba(30, 41, 59, 0.4);
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-
+  input::placeholder { color: var(--text-faint); }
   input:focus {
-    background: rgba(15, 23, 42, 0.6);
     border-color: var(--primary);
-    box-shadow:
-      inset 0 2px 4px 0 rgba(0, 0, 0, 0.2),
-      0 0 0 3px rgba(129, 140, 248, 0.2);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 2px var(--primary-light);
   }
-
   button {
     width: 100%;
-    padding: 1rem;
-    margin-top: 1.5rem;
-    background: linear-gradient(
-      180deg,
-      var(--primary) 0%,
-      var(--primary-hover) 100%
-    );
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    font-size: 0.95rem;
+    padding: 8px;
+    margin-top: auto;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
     font-weight: 600;
+    font-family: var(--font-sans);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    overflow: hidden;
+    transition: all var(--transition);
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    box-shadow:
-      0 4px 12px rgba(99, 102, 241, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    justify-content: center;
+    gap: 6px;
+    position: relative;
   }
-
-  button::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.3s;
+  button:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
   }
-
-  button:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 8px 20px rgba(99, 102, 241, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-
-  button:hover::before {
-    opacity: 1;
-  }
-
-  button:active {
-    transform: translateY(0);
-    box-shadow:
-      0 2px 4px rgba(99, 102, 241, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  }
-
-  button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-    background: var(--surface-color);
-    border-color: var(--surface-border);
-    color: var(--text-muted);
-  }
-
-  button:disabled:hover {
-    background: var(--surface-color);
-  }
-
-  button.loading .spinner {
-    display: block;
-    width: 16px;
-    height: 16px;
-    border-width: 2px;
-  }
-
-  button.loading .btn-text {
-    display: none;
-  }
+  button:active:not(:disabled) { transform: none; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  button.loading .btn-text { opacity: 0; }
+  button.loading .spinner { display: block; position: absolute; }
 </style>

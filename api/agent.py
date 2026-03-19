@@ -1,8 +1,15 @@
 import os
-from typing import TypedDict, List
+import json
+import re
+from typing import TypedDict, List, Optional
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+
+try:
+    from api.rag_retriever import retrieve_context, build_evaluation_prompt
+except ImportError:
+    from rag_retriever import retrieve_context, build_evaluation_prompt
 
 # 自动从项目根目录的 .env 文件加载环境变量
 load_dotenv()
@@ -13,6 +20,9 @@ class AgentState(TypedDict):
     candidates: List[dict]
     retry_count: int
     error_msg: str
+    rag_context: Optional[dict]
+    feedback: str
+    best_score: float
 
 # 初始化 Qwen (ModelScope 免费版)
 llm = ChatOpenAI(
@@ -25,67 +35,173 @@ llm = ChatOpenAI(
     },
 )
 
+
+def _parse_json_from_content(content: str) -> list:
+    """从 LLM 输出中提取 JSON 列表"""
+    try:
+        match = re.search(r'```(?:json)?\s*(\[.*?\])\s*```', content, re.DOTALL)
+        if match:
+            return json.loads(match.group(1))
+        match = re.search(r'\[\s*{.*?}\s*\]', content, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+    except Exception as e:
+        print(f"JSON parse error: {e}")
+    return []
+
+
+# ==================== 节点定义 ====================
+
+def rag_node(state: AgentState):
+    """RAG 检索节点：从知识库检索相关上下文"""
+    print("\n📚 [RAG 检索中...]")
+    rag_ctx = retrieve_context(state['industry'], state['keywords'])
+    has_match = rag_ctx['industry_cases'] is not None
+    print(f"{'✅ 匹配到行业案例库' if has_match else '💡 使用通用命名策略'}")
+    return {"rag_context": rag_ctx}
+
+
 def generator_node(state: AgentState):
-    prompt = f"""你是一位专业的商标命名专家。
+    """多策略生成节点：融合 RAG 上下文生成5个候选名称"""
+    rag_ctx = state.get('rag_context', {})
+    feedback = state.get('feedback', '')
     
-    请为以下行业和关键词生成3个创意商标名称：
-    行业：{state['industry']}
-    核心关键词：{state['keywords']}
+    prompt = f"""你是一位顶级品牌命名大师，精通中国文化、语言学和品牌战略。
+
+{rag_ctx.get('strategy_prompt', '')}
+
+{rag_ctx.get('few_shot_prompt', '')}
+
+{rag_ctx.get('culture_prompt', '')}
+
+现在请为以下需求生成 **5个** 高质量商标名称候选方案：
+行业：{state['industry']}
+核心关键词：{state['keywords']}
+
+【起名要求】
+1. 每个名称必须包含关键词的核心含义或精神内核，但不要直接堆砌关键词。
+2. 必须至少使用3种不同的命名策略（谐音双关/古典意象/中外融合/叠词叠韵/行业造词），避免5个名称风格雷同。
+3. 名称长度控制在2-4个汉字，避免生僻字、不吉利谐音和笔画过多的字。
+4. 每个名称要附带：所用策略、命名理由（100字以内）、以及一句品牌标语建议。
+5. 追求"过目不忘"的效果：名称应朗朗上口、有画面感、有情感共鸣。
+"""
+
+    if feedback:
+        prompt += f"""
+【改进要求】
+上一轮生成的名称评分较低，以下是评估反馈，请针对性改进：
+{feedback}
+请务必避免上一轮的问题，大胆尝试新的方向。
+"""
+
+    prompt += """
+【输出格式】
+请直接返回用 ```json 包裹的JSON列表，每个元素包含：
+- name（名称）
+- strategy（所用策略名称）
+- reason（命名理由，100字以内）
+- slogan（品牌标语建议）
+"""
     
-    起名要求：
-    1. 必须包含关键词中的核心含义。
-    2. 避免使用生僻字和不吉利的词语。
-    3. 输出格式：返回一个JSON列表，每个元素包含 name（名称）和 reason（简短理由）。
-    """
-    
-    print("\n🤖 [模型正在思考...]")
+    print(f"\n🎨 [第{state.get('retry_count', 0) + 1}轮生成中...]")
     full_content = ""
     
-    # 使用流式输出来打印思考过程
     for chunk in llm.stream(prompt):
-        # 常见的带有思维链的模型（如 DeepSeek-R1 / QwQ 等）会将思考过程存在 reasoning_content 中
         reasoning = chunk.additional_kwargs.get("reasoning_content", "")
         if reasoning:
             print(reasoning, end="", flush=True)
-            
-        # 获取最终回复的文本（如果思考过程是带 <think> 标签混杂在 content 中也会被拼接到这里）
         if chunk.content:
             full_content += chunk.content
-            # 打印模型输出的全部内容（因为有些模型的思考过程直接混在 content 中）
             print(chunk.content, end="", flush=True)
             
-    print("\n✨ [思考结束]\n")
+    print("\n✨ [生成结束]\n")
     
-    # 简单的解析逻辑（实际应用中建议使用 PydanticOutputParser）
-    try:
-        # 尝试直接解析JSON
-        import json
-        content = full_content.strip()
-        
-        # 移除Markdown代码块标记（如果有）
-        if content.startswith("```"):
-            lines = content.split("\n")
-            if len(lines) > 2:
-                content = "\n".join(lines[1:-1])
-        
-        candidates = json.loads(content)
-    except:
-        # 降级处理：简单分割
-        candidates = []
+    candidates = _parse_json_from_content(full_content)
+    if not candidates:
+        # 降级处理
         for line in full_content.split("\n"):
             if line.strip():
-                candidates.append({"name": line.strip(), "reason": ""})
+                candidates.append({"name": line.strip(), "reason": "", "strategy": "未知", "slogan": ""})
     
     return {"candidates": candidates, "retry_count": state.get('retry_count', 0) + 1}
 
-def checker_node(state: AgentState):
-    """合规检查节点（模拟）"""
-    # 实际应用中，这里会调用商标查询API
-    # 为了演示，我们模拟检查关键词是否包含“阿里”
+
+def evaluator_node(state: AgentState):
+    """自评打分节点：对候选名称从4个维度打分"""
+    rag_ctx = state.get('rag_context', {})
+    eval_dims = rag_ctx.get('evaluation_dimensions', {})
     
+    if not eval_dims or not state['candidates']:
+        return {"best_score": 0}
+    
+    eval_guide = build_evaluation_prompt(eval_dims)
+    candidates_text = "\n".join([
+        f"  {i+1}. {c['name']}（策略：{c.get('strategy', '未知')}）—— {c.get('reason', '')}"
+        for i, c in enumerate(state['candidates'])
+    ])
+    
+    eval_prompt = f"""你是一位资深的品牌命名评审专家。请对以下为"{state['industry']}"行业（关键词：{state['keywords']}）生成的商标名称进行严格评分。
+
+候选名称：
+{candidates_text}
+
+{eval_guide}
+
+【评分要求】
+1. 严格按照评分标准打分，不要敷衍。
+2. 对于每个名称，给出简短评语和改进建议。
+3. 综合四维得分计算加权总分：品牌辨识度×0.3 + 文化内涵×0.2 + 行业契合度×0.3 + 注册可行性×0.2
+
+【输出格式】
+请用 ```json 包裹返回一个JSON列表，每个元素包含：
+- name（名称）
+- scores（对象：brand_recognition, cultural_depth, industry_fit, registrability，每个为1-10的整数）
+- total_score（加权总分，精确到1位小数）
+- comment（简短评语和改进建议）
+"""
+    
+    print("\n📊 [评分中...]")
+    eval_content = ""
+    for chunk in llm.stream(eval_prompt):
+        if chunk.content:
+            eval_content += chunk.content
+    
+    scored = _parse_json_from_content(eval_content)
+    
+    if scored:
+        score_map = {sc['name']: sc for sc in scored}
+        for cand in state['candidates']:
+            info = score_map.get(cand['name'], {})
+            cand['scores'] = info.get('scores', {})
+            cand['total_score'] = info.get('total_score', 0)
+            cand['comment'] = info.get('comment', '')
+        
+        state['candidates'].sort(key=lambda x: x.get('total_score', 0), reverse=True)
+        best = state['candidates'][0].get('total_score', 0)
+        print(f"📊 最高分：{best}/10")
+        
+        # 如果分数不够，构造反馈
+        if best < 7:
+            feedback_lines = [
+                f"· {c['name']}（{c.get('total_score', 0)}分）：{c.get('comment', '')}"
+                for c in state['candidates']
+            ]
+            return {
+                "candidates": state['candidates'][:3],
+                "best_score": best,
+                "feedback": "\n".join(feedback_lines),
+            }
+        
+        return {"candidates": state['candidates'][:3], "best_score": best, "feedback": ""}
+    
+    return {"best_score": 0, "feedback": ""}
+
+
+def checker_node(state: AgentState):
+    """合规检查节点"""
     failed_names = []
     for cand in state['candidates']:
-        if "阿里" in cand['name']:
+        if "阿里" in cand.get('name', ''):
             failed_names.append(cand['name'])
             cand['status'] = "fail"
         else:
@@ -99,34 +215,39 @@ def checker_node(state: AgentState):
     else:
         return {"error_msg": "", "candidates": state['candidates']}
 
+
 # --- 构建图逻辑 ---
 workflow = StateGraph(AgentState)
 
 # 添加节点
+workflow.add_node("rag", rag_node)
 workflow.add_node("generator", generator_node)
+workflow.add_node("evaluator", evaluator_node)
 workflow.add_node("checker", checker_node)
 
-# 设置入口点
-workflow.set_entry_point("generator")
-# 设置边
-workflow.add_edge("generator", "checker")
+# 设置入口点和边
+workflow.set_entry_point("rag")
+workflow.add_edge("rag", "generator")
+workflow.add_edge("generator", "evaluator")
 
-# 条件边：检查是否有通过的名称
+# 条件边：评分是否足够或已达到重试上限
 def should_continue(state: AgentState):
-    """判断是否继续循环"""
-    # 如果有通过的名称，或者尝试次数已达上限，则停止
-    if any(c['status'] == "pass" for c in state['candidates']) or state.get('retry_count', 0) >= 3:
-        return END
+    """判断是否需要优化重生成"""
+    best_score = state.get('best_score', 0)
+    retry_count = state.get('retry_count', 0)
+    
+    if best_score >= 7 or retry_count >= 2:
+        return "checker"
     else:
         return "generator"
 
 workflow.add_conditional_edges(
-    "checker",
+    "evaluator",
     should_continue,
-    ["generator", END]
+    ["generator", "checker"]
 )
+
+workflow.add_edge("checker", END)
 
 # 编译图
 graph = workflow.compile()
-
-

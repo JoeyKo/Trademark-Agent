@@ -1,0 +1,189 @@
+{
+  "naming_strategies": [
+    {
+      "id": "homophone",
+      "name": "谐音双关法",
+      "description": "利用中文同音或近音字制造双重含义，让名称既有字面意义又有隐含寓意，增强记忆点",
+      "examples": [
+        {"name": "支付宝", "analysis": "'宝'谐音'保'，既是宝藏又暗示保障，直击金融安全感"},
+        {"name": "饿了么", "analysis": "直接使用口语化表达，精准锁定用户饥饿场景"},
+        {"name": "蔚来", "analysis": "'蔚'谐音'未'，蔚蓝+未来的双重意象，既有诗意又指向前方"},
+        {"name": "淘宝", "analysis": "'淘'有淘选之意，+宝=淘到宝贝，完美概括购物体验"}
+      ],
+      "tips": "选择发音响亮、笔画较少的谐音字，避免生僻字；确保谐音含义积极正面"
+    },
+    {
+      "id": "classical",
+      "name": "古典意象法",
+      "description": "从诗经、楚辞、唐诗宋词等古典文学中汲取意象，赋予品牌文化底蕴和高级感",
+      "examples": [
+        {"name": "呦呦", "analysis": "出自《诗经·小雅》'呦呦鹿鸣，食野之苹'，清新灵动"},
+        {"name": "百度", "analysis": "源自辛弃疾'众里寻他千百度'，贴合搜索引擎的本质"},
+        {"name": "鸿蒙", "analysis": "取自《山海经》，象征开天辟地的操作系统"},
+        {"name": "瑞幸", "analysis": "'瑞'为祥瑞，'幸'为幸运，双吉叠加"}
+      ],
+      "tips": "选择大众熟知的经典名句，避免过于晦涩的典故；名称本身要朗朗上口"
+    },
+    {
+      "id": "foreign_blend",
+      "name": "中外融合法",
+      "description": "结合外来音译与中文含义，兼顾国际化发音和中文美感，适合有全球化野心的品牌",
+      "examples": [
+        {"name": "可口可乐", "analysis": "Coca-Cola音译+中文'可口''可乐'双重美好含义"},
+        {"name": "奔驰", "analysis": "Mercedes-Benz→奔驰，完美传达速度与力量"},
+        {"name": "宜家", "analysis": "IKEA→宜家，'宜居之家'的温馨联想"},
+        {"name": "优步", "analysis": "Uber→优步，'优质每一步'的品牌承诺"}
+      ],
+      "tips": "音译要符合中文发音习惯；译名本身要有独立的中文含义"
+    },
+    {
+      "id": "reduplication",
+      "name": "叠词/叠韵法",
+      "description": "使用叠字、叠韵或押韵结构，创造节奏感和亲和力，便于记忆传播",
+      "examples": [
+        {"name": "娃哈哈", "analysis": "叠字+拟声，传达欢乐、童趣"},
+        {"name": "拼多多", "analysis": "'拼'字点明模式，'多多'叠字强化实惠感"},
+        {"name": "滴滴", "analysis": "叠字拟声，简洁有力，联想汽车喇叭声"},
+        {"name": "当当", "analysis": "叠字拟声，铿锵有力，联想敲门/开箱体验"}
+      ],
+      "tips": "叠词天然有亲和力，适合面向大众消费者的品牌；注意避免过于幼稚"
+    },
+    {
+      "id": "industry_coinage",
+      "name": "行业造词法",
+      "description": "将行业特征词与价值主张词创造性组合，形成有辨识度的全新词汇",
+      "examples": [
+        {"name": "极氪", "analysis": "'极致'+'锆(珍贵金属)'，科技感+珍贵感"},
+        {"name": "理想", "analysis": "直抒理想生活胸臆，定位家庭用车场景"},
+        {"name": "良品铺子", "analysis": "'良品'强调品质+'铺子'强调渠道集合"},
+        {"name": "喜茶", "analysis": "'喜悦情绪'+'茶品类'，从用户视角命名"}
+      ],
+      "tips": "组合要自然流畅，避免生硬拼凑；新词要能望文生义"
+    }
+  ],
+
+  "industry_cases": {
+    "新能源汽车": {
+      "successful_names": [
+        {"name": "蔚来", "strategy": "谐音双关", "reason": "蔚蓝+未来，科技感与愿景并重"},
+        {"name": "理想", "strategy": "行业造词", "reason": "直击家庭用车的理想生活场景"},
+        {"name": "极氪", "strategy": "行业造词", "reason": "极致+珍贵金属，高端科技定位"},
+        {"name": "小鹏", "strategy": "人名+意象", "reason": "亲切感+鹏鸟展翅的远大意象"},
+        {"name": "哪吒", "strategy": "神话意象", "reason": "叛逆精神，与传统车企差异化"}
+      ],
+      "common_elements": ["智、驰、途、锐、能、极、驭、翼"],
+      "avoid": ["避免过度使用'新'字", "避免直译'green/eco'等外来词", "避免过长、笔画复杂的名称"]
+    },
+    "科技互联网": {
+      "successful_names": [
+        {"name": "百度", "strategy": "古典意象", "reason": "辛弃疾词句，搜索的诗意表达"},
+        {"name": "字节跳动", "strategy": "行业造词", "reason": "数据的最小单位+跳动的活力"},
+        {"name": "网易", "strategy": "行业造词", "reason": "网络+容易，降低互联网门槛"},
+        {"name": "美团", "strategy": "行业造词", "reason": "美好+团购，直击核心业务"}
+      ],
+      "common_elements": ["智、云、数、联、域、码、维、芯"],
+      "avoid": ["避免过于技术化的缩写", "避免与大厂已有商标近似"]
+    },
+    "食品饮料": {
+      "successful_names": [
+        {"name": "喜茶", "strategy": "行业造词", "reason": "喜悦情绪+茶品类"},
+        {"name": "元气森林", "strategy": "行业造词", "reason": "元气(活力)+森林(天然)"},
+        {"name": "三只松鼠", "strategy": "动物意象", "reason": "松鼠爱坚果，数量词增加趣味"},
+        {"name": "良品铺子", "strategy": "行业造词", "reason": "良品(品质)+铺子(亲近)"}
+      ],
+      "common_elements": ["鲜、味、香、源、醇、甄、臻"],
+      "avoid": ["避免夸大功效", "避免与知名食品品牌谐音"]
+    },
+    "母婴": {
+      "successful_names": [
+        {"name": "贝亲", "strategy": "行业造词", "reason": "宝贝+亲爱，温暖呵护感"},
+        {"name": "好孩子", "strategy": "直述法", "reason": "直击父母期望，朴实有力"},
+        {"name": "全棉时代", "strategy": "行业造词", "reason": "全棉材质+时代感，安全高端"}
+      ],
+      "common_elements": ["宝、贝、亲、乐、萌、童、爱、星"],
+      "avoid": ["避免过于幼稚", "避免性别限定过强的用词"]
+    },
+    "美妆护肤": {
+      "successful_names": [
+        {"name": "花西子", "strategy": "古典意象", "reason": "花+西子(西施)，东方美学"},
+        {"name": "完美日记", "strategy": "行业造词", "reason": "完美妆容的日常记录"},
+        {"name": "薇诺娜", "strategy": "中外融合", "reason": "音译+中文美感兼顾"}
+      ],
+      "common_elements": ["美、颜、肌、润、雅、兰、妍"],
+      "avoid": ["避免过度承诺功效", "避免与国际大牌谐音引发侵权风险"]
+    },
+    "教育培训": {
+      "successful_names": [
+        {"name": "猿辅导", "strategy": "动物意象", "reason": "猿(聪明进化)+辅导，趣味专业"},
+        {"name": "高途", "strategy": "行业造词", "reason": "高效之途，直击提升目标"},
+        {"name": "作业帮", "strategy": "行业造词", "reason": "解决作业难题的帮手"}
+      ],
+      "common_elements": ["学、智、启、慧、博、知、育"],
+      "avoid": ["避免承诺结果如'必过'", "避免过于学术化"]
+    },
+    "医疗健康": {
+      "successful_names": [
+        {"name": "丁香园", "strategy": "植物意象", "reason": "丁香(中药材)+园(聚集地)"},
+        {"name": "微医", "strategy": "行业造词", "reason": "微(微信时代)+医，便捷医疗"},
+        {"name": "春雨医生", "strategy": "自然意象", "reason": "春雨润物的细腻关怀"}
+      ],
+      "common_elements": ["康、健、仁、和、寿、安、堂"],
+      "avoid": ["避免使用'神'等夸大字眼", "避免与药品通用名混淆"]
+    },
+    "金融理财": {
+      "successful_names": [
+        {"name": "蚂蚁", "strategy": "动物意象", "reason": "小蚂蚁汇聚大力量，普惠金融"},
+        {"name": "陆金所", "strategy": "人名+行业", "reason": "陆(大陆)+金(金融)+所(交易所)"},
+        {"name": "富途", "strategy": "行业造词", "reason": "富裕之途，直击财富目标"}
+      ],
+      "common_elements": ["金、信、汇、融、利、盈、通"],
+      "avoid": ["避免过度暗示收益", "避免与银行名称近似"]
+    }
+  },
+
+  "cultural_references": {
+    "诗经楚辞": [
+      {"source": "《诗经·小雅》", "text": "呦呦鹿鸣，食野之苹", "usable_words": ["呦呦", "鹿鸣", "野苹"]},
+      {"source": "《诗经·秦风》", "text": "蒹葭苍苍，白露为霜", "usable_words": ["蒹葭", "白露", "为霜"]},
+      {"source": "《楚辞·离骚》", "text": "路漫漫其修远兮", "usable_words": ["修远", "漫兮"]},
+      {"source": "《诗经·卫风》", "text": "如切如磋，如琢如磨", "usable_words": ["切磋", "琢磨"]},
+      {"source": "《楚辞·九章》", "text": "青云衣兮白霓裳", "usable_words": ["青云", "霓裳"]}
+    ],
+    "成语典故": [
+      {"idiom": "厚德载物", "usable_words": ["厚德", "载物"]},
+      {"idiom": "大道至简", "usable_words": ["至简", "大道"]},
+      {"idiom": "海纳百川", "usable_words": ["海纳", "百川"]},
+      {"idiom": "鹏程万里", "usable_words": ["鹏程", "万里"]},
+      {"idiom": "匠心独运", "usable_words": ["匠心", "独运"]}
+    ],
+    "山海经神话": [
+      {"creature": "麒麟", "meaning": "祥瑞、仁德", "suitable_for": "高端品牌、科技"},
+      {"creature": "鲲鹏", "meaning": "远大志向、气势磅礴", "suitable_for": "物流、航空、科技"},
+      {"creature": "凤凰", "meaning": "浴火重生、高贵", "suitable_for": "美妆、奢侈品"},
+      {"creature": "白泽", "meaning": "博学多知", "suitable_for": "教育、咨询"}
+    ]
+  },
+
+  "evaluation_dimensions": {
+    "brand_recognition": {
+      "name": "品牌辨识度",
+      "description": "名称是否好记、独特、朗朗上口，能否在众多品牌中脱颖而出",
+      "scoring_guide": "1-3分:平淡无奇; 4-6分:有一定特色; 7-8分:令人印象深刻; 9-10分:过目不忘"
+    },
+    "cultural_depth": {
+      "name": "文化内涵",
+      "description": "名称是否有文化底蕴、寓意深远，能否引发正面联想",
+      "scoring_guide": "1-3分:无特殊含义; 4-6分:有基本寓意; 7-8分:文化底蕴丰富; 9-10分:寓意精妙绝伦"
+    },
+    "industry_fit": {
+      "name": "行业契合度",
+      "description": "名称是否契合目标行业气质，能否让人自然联想到相关行业",
+      "scoring_guide": "1-3分:行业关联弱; 4-6分:基本符合; 7-8分:高度契合; 9-10分:行业标杆级"
+    },
+    "registrability": {
+      "name": "注册可行性",
+      "description": "名称是否足够独特以避免商标冲突，字数是否适中(2-4字最佳)",
+      "scoring_guide": "1-3分:极易冲突; 4-6分:有一定风险; 7-8分:冲突概率较低; 9-10分:高度独创"
+    }
+  }
+}
