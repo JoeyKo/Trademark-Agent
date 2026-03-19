@@ -102,10 +102,18 @@ import ResultsDisplay from "../components/ResultsDisplay.astro";
 
 		// ==================== Theme ====================
 		function setTheme(theme: string) {
+			// 临时禁用过渡，防止闪烁
+			document.documentElement.classList.add("no-transition");
 			document.documentElement.setAttribute("data-theme", theme);
 			localStorage.setItem("theme", theme);
 			document.getElementById("icon-sun")!.style.display = theme === "dark" ? "none" : "block";
 			document.getElementById("icon-moon")!.style.display = theme === "dark" ? "block" : "none";
+			// 等浏览器完成重绘后再恢复过渡
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					document.documentElement.classList.remove("no-transition");
+				});
+			});
 		}
 
 		// ==================== Interfaces ====================

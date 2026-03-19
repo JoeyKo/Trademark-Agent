@@ -118,6 +118,14 @@ const { title } = Astro.props;
 
 			h1, h2, h3, h4, h5, h6 { letter-spacing: -0.02em; }
 
+			/* 主题切换时临时禁用过渡 */
+			.no-transition,
+			.no-transition *,
+			.no-transition *::before,
+			.no-transition *::after {
+				transition: none !important;
+			}
+
 			/* ===== Utility ===== */
 			.spinner {
 				display: none;
